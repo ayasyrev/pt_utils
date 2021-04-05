@@ -27,7 +27,7 @@ EXTRAS = {"test": ["pytest"]}
 
 # Load the package's __version__ from __init__.py module as a dictionary.
 about = {}
-with open(os.path.join(here, NAME, "__init__.py")) as f:
+with open(os.path.join(here, 'src', "__init__.py")) as f:
     exec(f.read(), about)
 
 VERSION = about['__version__']
@@ -91,7 +91,7 @@ setup(
     long_description_content_type="text/markdown",
     author=AUTHOR,
     author_email=EMAIL,
-    license="MIT",
+    license="Apache",
     url=URL,
     packages=find_packages(exclude=["tests", "docs", "images"]),
     install_requires=REQUIRED,
