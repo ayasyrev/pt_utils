@@ -52,7 +52,8 @@ class ImageFolderDataset(Dataset):
             root (Union[str, PosixPath]): Data directory
             transform (Union[Callable, None], optional): Transform for samples. Defaults to None.
             loader (Callable, optional): Func for read images. Defaults to default_loader.
-            limit_dataset (Union[bool, int], optional): If set< dataset will be limited to this number. Defaults to False.
+            limit_dataset (Union[bool, int], optional): If set dataset will be limited to this number.
+                                                        Defaults to False.
         """
         self.root = Path(root)
         self.transform = transform
@@ -88,7 +89,8 @@ class ImageFolderDatasetMemory(Dataset):
             root (Union[str, PosixPath]): Data directory
             transform (Union[Callable, None], optional): Transform for samples. Defaults to None.
             loader (Callable, optional): Func for read images. Defaults to default_loader.
-            limit_dataset (Union[bool, int], optional): If set< dataset will be limited to this number. Defaults to False.
+            limit_dataset (Union[bool, int], optional): If set dataset will be limited to this number.
+                                                        Defaults to False.
         """
         self.root = Path(root)
         self.transform = transform

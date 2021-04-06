@@ -1,4 +1,4 @@
-from pt_utils.get_img_files import get_img_files
+from pt_utils.get_image_files import get_img_files
 
 
 def test_get_image_filenames():

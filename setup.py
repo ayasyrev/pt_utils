@@ -27,7 +27,8 @@ EXTRAS = {"test": ["pytest"]}
 
 # Load the package's __version__ from __init__.py module as a dictionary.
 about = {}
-with open(os.path.join(here, 'src', "__init__.py")) as f:
+with open(os.path.join(here, NAME, "__init__.py")) as f:
+# with open(os.path.join(here, 'src', "__init__.py")) as f:
     exec(f.read(), about)
 
 VERSION = about['__version__']
@@ -87,24 +88,47 @@ setup(
     name=NAME,
     version=VERSION,
     description=DESCRIPTION,
-    long_description=get_long_description(),
-    long_description_content_type="text/markdown",
-    author=AUTHOR,
-    author_email=EMAIL,
-    license="Apache",
+    license='Apache 2',
     url=URL,
-    packages=find_packages(exclude=["tests", "docs", "images"]),
+    long_description='',
+    python_requires='>=3.6',
     install_requires=REQUIRED,
-    extras_require=EXTRAS,
+    # packages=find_packages(),
+    packages=find_packages(),
+    # packages=find_packages(where='src'),
+    # package_dir={"": "src"},
+    # packages=[NAME],
     classifiers=[
-        "License :: OSI Approved :: Apache Software License",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
+        'Development Status :: 4 - Beta',
         "Programming Language :: Python :: 3",
-        "Topic :: Software Development :: Libraries",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+        "License :: OSI Approved :: Apache 2",
+        "Operating System :: OS Independent",
     ],
-    cmdclass={"upload": UploadCommand},
 )
+
+
+# setup(
+#     name=NAME,
+#     version=VERSION,
+#     description=DESCRIPTION,
+#     long_description=get_long_description(),
+#     long_description_content_type="text/markdown",
+#     author=AUTHOR,
+#     author_email=EMAIL,
+#     license="Apache",
+#     url=URL,
+#     packages=find_packages(exclude=["tests"]),
+#     install_requires=REQUIRED,
+#     extras_require=EXTRAS,
+#     classifiers=[
+#         "License :: OSI Approved :: Apache Software License",
+#         "Intended Audience :: Developers",
+#         "Intended Audience :: Science/Research",
+#         "Operating System :: OS Independent",
+#         "Programming Language :: Python",
+#         "Programming Language :: Python :: 3",
+#         "Topic :: Software Development :: Libraries",
+#         "Topic :: Software Development :: Libraries :: Python Modules",
+#     ],
+#     # cmdclass={"upload": UploadCommand},
+# )
