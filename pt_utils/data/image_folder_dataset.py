@@ -1,4 +1,4 @@
-from pt_utils.get_image_files import get_img_files
+from pt_utils.data.get_image_files import get_img_files
 from typing import Callable, Tuple, Union
 from pathlib import Path, PosixPath
 
