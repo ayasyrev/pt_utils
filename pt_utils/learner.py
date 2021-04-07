@@ -25,12 +25,12 @@ class Learner:
     def reset_opt(self):
         return self.opt_fn(self.model.parameters(), lr=self.lr)
 
-    def fit(self, epochs: int):
+    def fit(self, epochs: int, cfg=None):
         train_start_time = time.time()
-
+        if cfg is None:
+            cfg = {'lr': self.lr}
         wandb.init(project=self.prj_name,
-                   config={'lr': self.lr},
-                   )
+                   config=cfg)
         wandb.run.name = '-'.join([wandb.run.name.split('-')[-1], wandb.run.id])
         print(f"w_name: {wandb.run.name}, num: {wandb.run.name.split('-')[0]}")
         wandb.watch(self.model, log='all')
