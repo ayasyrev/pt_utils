@@ -1,3 +1,4 @@
 # pytorch
+accelerate
 fastprogress
 wandb
