@@ -1,4 +1,5 @@
 # pytorch
 accelerate
-fastprogress
+# fastprogress
+rich
 wandb
