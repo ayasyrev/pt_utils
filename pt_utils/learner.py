@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import time
-from typing import OrderedDict
+from typing import Callable, Union
 from rich import progress
 
 import torch
@@ -11,7 +11,6 @@ from rich.progress import Progress
 from accelerate import Accelerator
 
 from pt_utils.logger import LoggerCfg, Logger
-from local_utils.pt_utils.transforms import Norm
 
 
 def format_time(seconds: float, long: bool = True):
@@ -42,6 +41,8 @@ class Learner:
     Uses acceleartor as handler over different devices, progress bar and simple logger capabilites."""
     def __init__(self, model: nn.Module, loss_fn, opt_fn, train_dl, val_dl,
                  cfg: LearnerCfg = LearnerCfg(),
+                 device: Accelerator.device = device,
+                 batch_tfm: Union[Callable, None] = None,
                  logger: Logger = None) -> None:
         self.model = model
         self.loss_fn = loss_fn
@@ -53,8 +54,7 @@ class Learner:
         self.device = device
         self.opt = self.reset_opt()
 
-        self.batch_tfm = Norm(device=self.device)
-
+        self.batch_tfm = batch_tfm
         if logger is None:
             logger = Logger(project=self.cfg.project_name, cfg=self.cfg.logger_cfg)
         self.logger = logger
@@ -111,6 +111,8 @@ class Learner:
         self.logger.finish()
 
     def loss_batch(self, batch):
-        input = self.batch_tfm(batch[0])
+        input = batch[0]
+        if self.batch_tfm is not None:
+            input = self.batch_tfm(input)
         pred = self.model(input)
         return self.loss_fn(pred, batch[1])
