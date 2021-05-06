@@ -1,3 +1,4 @@
+from typing import Callable, List, Union
 from torchvision import transforms as T
 import torch
 import accimage
@@ -35,6 +36,41 @@ class Normalize(object):
 
     def __repr__(self):
         return f'{self.__class__.__name__} mean={self.mean}, std={self.std})'
+
+
+class AccimageBaseTransforms(object):
+    """Base class for transforms"""
+    def __init__(self, transforms: List[Callable] = [], normalize: bool = True, to_tensor: bool = True) -> None:
+        if normalize:
+            transforms.append(Normalize())
+        if to_tensor:
+            transforms.append(AccimageImageToTensor())
+        self.transforms = T.Compose(transforms)
+
+    def __call__(self, image):
+        return self.transforms(image)
+
+
+class AccimageTransformsTrain(AccimageBaseTransforms):
+    """Transforms for train augmentation"""
+    def __init__(self, size: int, scale=(0.35, 1), transforms: Union[List[Callable], None] = None,
+                    normalize: bool = True, to_tensor: bool = True) -> None:
+            if transforms is None:
+                transforms = [T.RandomResizedCrop(size, scale=scale),
+                              T.RandomHorizontalFlip()]
+            super().__init__(transforms, normalize, to_tensor)
+
+
+class AccimageTransformsVal(AccimageBaseTransforms):
+    """Transforms for train augmentation"""
+
+    def __init__(self, size: int, extra_size: int = 32, transforms: Union[List[Callable], None] = None,
+                 normalize: bool = True, to_tensor: bool = True) -> None:
+        if transforms is None:
+            transforms = [T.Resize(size + extra_size),
+                          T.CenterCrop(size)]
+        super().__init__(transforms, normalize, to_tensor)
+
 
 normalize = T.Normalize(
     mean=[0.485, 0.456, 0.406],

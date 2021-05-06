@@ -35,6 +35,6 @@ class AlbumentationTransformsVal(AlbumentationTransforms):
     def __init__(self, size: int, extra_size: int = 32, transforms: Union[List[Callable], None] = None,
                  normalize: bool = True, to_tensor: bool = True) -> None:
         if transforms is None:
-            transforms = [A.Resize(size, size),
+            transforms = [A.Resize(size + extra_size, size + extra_size),
                           A.CenterCrop(size, size)]
         super().__init__(transforms, normalize, to_tensor)
