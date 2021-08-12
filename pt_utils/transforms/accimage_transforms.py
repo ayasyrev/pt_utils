@@ -16,6 +16,17 @@ class AccimageImageToTensor(object):
         return self.__class__.__name__
 
 
+class AccimageImageToTensorNN(torch.nn.Module):
+
+    def forward(self, img: accimage.Image):
+        nppic = np.empty([img.channels, img.height, img.width], dtype=np.float32)
+        img.copyto(nppic)
+        return torch.from_numpy(nppic)
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
 class Normalize(object):
     def __init__(self,
                  mean=[0.485, 0.456, 0.406],
@@ -54,11 +65,11 @@ class AccimageBaseTransforms(object):
 class AccimageTransformsTrain(AccimageBaseTransforms):
     """Transforms for train augmentation"""
     def __init__(self, size: int, scale=(0.35, 1), transforms: Union[List[Callable], None] = None,
-                    normalize: bool = True, to_tensor: bool = True) -> None:
-            if transforms is None:
-                transforms = [T.RandomResizedCrop(size, scale=scale),
-                              T.RandomHorizontalFlip()]
-            super().__init__(transforms, normalize, to_tensor)
+                 normalize: bool = True, to_tensor: bool = True) -> None:
+        if transforms is None:
+            transforms = [T.RandomResizedCrop(size, scale=scale),
+                          T.RandomHorizontalFlip()]
+        super().__init__(transforms, normalize, to_tensor)
 
 
 class AccimageTransformsVal(AccimageBaseTransforms):
