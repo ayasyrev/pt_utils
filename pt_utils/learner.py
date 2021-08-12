@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 import time
 from typing import Callable, Union
-from rich import progress
 
 import torch
 import torch.nn as nn
@@ -16,7 +15,7 @@ from pt_utils.logger import LoggerCfg, Logger
 def format_time(seconds: float, long: bool = True):
     "Format secons to mm:ss, optoinal mm:ss.ms"
     seconds_int = int(seconds)
-    min, sec = (seconds_int//60)%60, seconds_int%60
+    min, sec = (seconds_int // 60) % 60, seconds_int % 60
     res = f'{min:02d}:{sec:02d}'
     if long:
         res = '.'.join([res, f'{int((seconds - seconds_int) * 10)}'])
@@ -64,8 +63,7 @@ class Learner:
 
     def fit(self, epochs: int):
         self.befor_fit()
-        # with self.progress_bar:
-           
+
         main_job = self.progress_bar.add_task('fit....', total=epochs)
         for epoch in range(epochs):
             self.progress_bar.tasks[main_job].description = f"ep {epoch + 1} of {epochs}"
@@ -75,7 +73,7 @@ class Learner:
             train_job = self.progress_bar.add_task('train', total=len_train_dl)
             for batch_num, batch in enumerate(self.train_dl):
                 loss = self.loss_batch(batch)
-                self.progress_bar._tasks[train_job].description = f"batch {batch_num}/{len_train_dl}"  # ", loss {loss:0.4f}"
+                self.progress_bar._tasks[train_job].description = f"batch {batch_num}/{len_train_dl}"
                 accelerator.backward(loss)
                 self.opt.step()
                 self.opt.zero_grad()
@@ -92,8 +90,10 @@ class Learner:
                 valid_loss = sum(valid_losses) / len(valid_losses)
             epoch_time = time.time() - start_time
             val_time = epoch_time - train_time
-            to_log = {'epoch': epoch, 'train_loss': loss, 'val_loss': valid_loss, 'time': epoch_time, 'train_time': train_time, 'val_time': val_time}
-            to_progress_bar = [f"{epoch + 1}", f"{loss:0.4f}", f"{valid_loss:0.4f}", f"{format_time(epoch_time)}", f"{format_time(train_time)}", f"{format_time(val_time)}"]
+            to_log = {'epoch': epoch, 'train_loss': loss, 'val_loss': valid_loss,
+                      'time': epoch_time, 'train_time': train_time, 'val_time': val_time}
+            to_progress_bar = [f"{epoch + 1}", f"{loss:0.4f}", f"{valid_loss:0.4f}",
+                               f"{format_time(epoch_time)}", f"{format_time(train_time)}", f"{format_time(val_time)}"]
             self.progress_bar.print(' '.join([f"{value:>9}" for value in to_progress_bar]))
             self.logger.log(to_log)
             self.progress_bar.remove_task(train_job)
@@ -114,7 +114,7 @@ class Learner:
         self.logger.log_cfg(self.cfg)
         self.model, self.opt, self.train_dl, self.val_dl = accelerator.prepare(self.model, self.opt,
                                                                                self.train_dl, self.val_dl)
-        self.progress_bar = Progress()
+        self.progress_bar = Progress(transient=True)
         self.progress_bar.start()
         header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time', 'val_time', 'train_time']
         self.progress_bar.print(' '.join([f"{value:>9}" for value in header]))
@@ -124,4 +124,5 @@ class Learner:
         self.progress_bar.print(f"full time: {format_time(full_time)}")
         self.logger.log({'full_time': full_time})
         self.logger.finish()
+        # self.progress_bar.remove_task(self.progress_bar.task_ids[0])
         self.progress_bar.stop()
