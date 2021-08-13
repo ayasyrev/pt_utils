@@ -85,7 +85,7 @@ class Learner:
                 len_val_dl = len(self.val_dl)
                 val_job = self.progress_bar.add_task('validate...', total=len_val_dl)
                 for batch_num, batch in enumerate(self.val_dl):
-                    valid_losses.append(self.loss_batch(batch).item())  # cpu?
+                    valid_losses.append(self.loss_batch(batch).item())  # cpu? dont collect -> just summ?
                     self.progress_bar.update(val_job, advance=1)
                 valid_loss = sum(valid_losses) / len(valid_losses)
             epoch_time = time.time() - start_time
@@ -116,13 +116,12 @@ class Learner:
                                                                                self.train_dl, self.val_dl)
         self.progress_bar = Progress(transient=True)
         self.progress_bar.start()
-        header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time', 'val_time', 'train_time']
-        self.progress_bar.print(' '.join([f"{value:>9}" for value in header]))
+        header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time']
+        self.progress_bar.print(' '.join([f"{value:^9}" for value in header]))
 
     def after_fit(self):
         full_time = time.time() - self.train_start_time
         self.progress_bar.print(f"full time: {format_time(full_time)}")
         self.logger.log({'full_time': full_time})
         self.logger.finish()
-        # self.progress_bar.remove_task(self.progress_bar.task_ids[0])
         self.progress_bar.stop()
