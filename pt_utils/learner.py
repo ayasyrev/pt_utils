@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import time
-from typing import Callable, Union
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -22,10 +22,6 @@ def format_time(seconds: float, long: bool = True):
     return res
 
 
-accelerator = Accelerator()
-device = accelerator.device
-
-
 @dataclass
 class LearnerCfg:
     project_name: str = 'test'
@@ -40,9 +36,14 @@ class Learner:
     Uses acceleartor as handler over different devices, progress bar and simple logger capabilites."""
     def __init__(self, model: nn.Module, loss_fn, opt_fn, train_dl, val_dl,
                  cfg: LearnerCfg = LearnerCfg(),
-                 device: Accelerator.device = device,
-                 batch_tfm: Union[Callable, None] = None,
+                 accelerator: Union[Accelerator, None] = None,
+                 batch_tfm: Union[nn.Module, None] = None,
                  logger: Logger = None) -> None:
+        if accelerator is None:
+            self.accelerator = Accelerator()
+        else:
+            self.accelerator = accelerator
+
         self.model = model
         self.loss_fn = loss_fn
         self.opt_fn = opt_fn
@@ -50,7 +51,6 @@ class Learner:
         self.val_dl = val_dl
         self.cfg = cfg
 
-        self.device = device
         self.opt = self.reset_opt()
 
         self.batch_tfm = batch_tfm
@@ -74,7 +74,7 @@ class Learner:
             for batch_num, batch in enumerate(self.train_dl):
                 loss = self.loss_batch(batch)
                 self.progress_bar._tasks[train_job].description = f"batch {batch_num}/{len_train_dl}"
-                accelerator.backward(loss)
+                self.accelerator.backward(loss)
                 self.opt.step()
                 self.opt.zero_grad()
                 self.progress_bar.update(train_job, advance=1)
@@ -112,8 +112,10 @@ class Learner:
         self.train_start_time = time.time()
         self.logger.start()
         self.logger.log_cfg(self.cfg)
-        self.model, self.opt, self.train_dl, self.val_dl = accelerator.prepare(self.model, self.opt,
-                                                                               self.train_dl, self.val_dl)
+        self.model, self.opt, self.train_dl, self.val_dl = self.accelerator.prepare(self.model, self.opt,
+                                                                                    self.train_dl, self.val_dl)
+        if self.batch_tfm:
+            self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
         self.progress_bar = Progress(transient=True)
         self.progress_bar.start()
         header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time']
