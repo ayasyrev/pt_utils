@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import time
-from typing import Callable, Union
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -37,7 +37,7 @@ class Learner:
     def __init__(self, model: nn.Module, loss_fn, opt_fn, train_dl, val_dl,
                  cfg: LearnerCfg = LearnerCfg(),
                  accelerator: Union[Accelerator, None] = None,
-                 batch_tfm: Union[Callable, None] = None,
+                 batch_tfm: Union[nn.Module, None] = None,
                  logger: Logger = None) -> None:
         if accelerator is None:
             self.accelerator = Accelerator()
@@ -114,8 +114,8 @@ class Learner:
         self.logger.log_cfg(self.cfg)
         self.model, self.opt, self.train_dl, self.val_dl = self.accelerator.prepare(self.model, self.opt,
                                                                                     self.train_dl, self.val_dl)
-        # if self.batch_tfm:
-        #     self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
+        if self.batch_tfm:
+            self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
         self.progress_bar = Progress(transient=True)
         self.progress_bar.start()
         header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time']
