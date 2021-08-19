@@ -2,7 +2,7 @@ from pathlib import Path, PosixPath
 from typing import List, Union
 
 
-IMG_EXT = [".JPEG", '.JPG', '.jpeg', '.jpg']
+IMG_EXT = ['.JPEG', '.JPG', '.jpeg', '.jpg', '.PNG', '.png']
 
 
 def get_img_files(data_dir: Union[str, PosixPath], num_samples: int = 0) -> List[str]:
