@@ -52,10 +52,11 @@ class Normalize(object):
 class AccimageBaseTransforms(object):
     """Base class for transforms"""
     def __init__(self, transforms: List[Callable] = [], normalize: bool = True, to_tensor: bool = True) -> None:
-        if normalize:
-            transforms.append(Normalize())
+
         if to_tensor:
             transforms.append(AccimageImageToTensor())
+        if normalize:
+            transforms.append(Normalize())
         self.transforms = T.Compose(transforms)
 
     def __call__(self, image):
