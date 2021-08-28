@@ -55,10 +55,9 @@ def prepare_data(data_dir: Union[PosixPath, str] = DATADIR, name: str = 'imagene
     if check_data_exists(data_dir, name):
         print(f"Data alredy exist, path: {ds_path}")
     else:
-        # dataset_url = imagenette_urls[name]
-        # download_and_extract_archive(url=dataset_url, download_root=ds_path, md5=imagenette_md5[name])
-        # print(f"Downloaded, path: {data_dir}")
-        print('not_exist')
+        dataset_url = imagenette_urls[name]
+        download_and_extract_archive(url=dataset_url, download_root=data_dir, md5=imagenette_md5[name])
+        print(f"Downloaded, path: {data_dir}")
     return ds_path
 
 
