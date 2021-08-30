@@ -5,6 +5,7 @@ from typing import Union
 import torch
 import torch.nn as nn
 
+from rich import print
 from rich.progress import Progress
 
 from accelerate import Accelerator
@@ -12,7 +13,7 @@ from accelerate import Accelerator
 from pt_utils.logger import LoggerCfg, Logger
 
 
-def format_time(seconds: float, long: bool = True):
+def format_time(seconds: float, long: bool = True) -> str:
     "Format secons to mm:ss, optoinal mm:ss.ms"
     seconds_int = int(seconds)
     min, sec = (seconds_int // 60) % 60, seconds_int % 60
@@ -20,6 +21,19 @@ def format_time(seconds: float, long: bool = True):
     if long:
         res = '.'.join([res, f'{int((seconds - seconds_int) * 10)}'])
     return res
+
+
+def format_log(to_log: dict) -> str:
+    items = []
+    for key, value in to_log.items():
+        if type(value) is int:
+            items.append(str(value))
+        elif type(value) is float:
+            if 'time' in key:
+                items.append(format_time(value))
+            else:
+                items.append(f"{value:0.4f}")
+    return ' '.join([f"{item:>9}" for item in items])
 
 
 @dataclass
@@ -65,8 +79,8 @@ class Learner:
         self.befor_fit()
 
         main_job = self.progress_bar.add_task('fit....', total=epochs)
-        for epoch in range(epochs):
-            self.progress_bar.tasks[main_job].description = f"ep {epoch + 1} of {epochs}"
+        for epoch in range(1, epochs + 1):
+            self.progress_bar.tasks[main_job].description = f"ep {epoch} of {epochs}"
             self.model.train()
             start_time = time.time()
             len_train_dl = len(self.train_dl)
@@ -90,11 +104,9 @@ class Learner:
                 valid_loss = sum(valid_losses) / len(valid_losses)
             epoch_time = time.time() - start_time
             val_time = epoch_time - train_time
-            to_log = {'epoch': epoch, 'train_loss': loss, 'val_loss': valid_loss,
+            to_log = {'epoch': epoch, 'train_loss': loss.item(), 'val_loss': valid_loss,
                       'time': epoch_time, 'train_time': train_time, 'val_time': val_time}
-            to_progress_bar = [f"{epoch + 1}", f"{loss:0.4f}", f"{valid_loss:0.4f}",
-                               f"{format_time(epoch_time)}", f"{format_time(train_time)}", f"{format_time(val_time)}"]
-            self.progress_bar.print(' '.join([f"{value:>9}" for value in to_progress_bar]))
+            print(format_log(to_log))
             self.logger.log(to_log)
             self.progress_bar.remove_task(train_job)
             self.progress_bar.remove_task(val_job)
@@ -119,7 +131,7 @@ class Learner:
         self.progress_bar = Progress(transient=True)
         self.progress_bar.start()
         header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time']
-        self.progress_bar.print(' '.join([f"{value:^9}" for value in header]))
+        print(' '.join([f"{value:^9}" for value in header]))
 
     def after_fit(self):
         full_time = time.time() - self.train_start_time
