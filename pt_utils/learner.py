@@ -86,8 +86,8 @@ class Learner:
             len_train_dl = len(self.train_dl)
             train_job = self.progress_bar.add_task('train', total=len_train_dl)
             for batch_num, batch in enumerate(self.train_dl):
-                loss = self.loss_batch(batch)
                 self.progress_bar._tasks[train_job].description = f"batch {batch_num}/{len_train_dl}"
+                loss = self.loss_batch(batch)
                 self.accelerator.backward(loss)
                 self.opt.step()
                 self.opt.zero_grad()
@@ -121,8 +121,9 @@ class Learner:
         return self.loss_fn(pred, batch[1])
 
     def befor_fit(self):
+        header = ['epoch', 'train_loss', 'val_loss', 'time', 'train_time', 'val_time']
         self.train_start_time = time.time()
-        self.logger.start()
+        self.logger.start(header=header)
         self.logger.log_cfg(self.cfg)
         self.model, self.opt, self.train_dl, self.val_dl = self.accelerator.prepare(self.model, self.opt,
                                                                                     self.train_dl, self.val_dl)
@@ -130,12 +131,10 @@ class Learner:
             self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
         self.progress_bar = Progress(transient=True)
         self.progress_bar.start()
-        header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time']
         print(' '.join([f"{value:^9}" for value in header]))
 
     def after_fit(self):
         full_time = time.time() - self.train_start_time
         self.progress_bar.print(f"full time: {format_time(full_time)}")
-        self.logger.log({'full_time': full_time})
         self.logger.finish()
         self.progress_bar.stop()
