@@ -67,7 +67,7 @@ def load_obj(obj_path: str = 'xxx.yyy', default_obj_path: str = "") -> Any:
         raise AttributeError(
             "Object `{}` cannot be loaded from `{}`.".format(obj_name, obj_path)
         )
-    return getattr(module_obj, obj_name)    
+    return getattr(module_obj, obj_name)
 
 
 def load_model_state(model: torch.nn.Module, state_path: str) -> None:
