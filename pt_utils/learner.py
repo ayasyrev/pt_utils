@@ -40,8 +40,8 @@ def format_log(to_log: dict) -> str:
 class LearnerCfg:
     project_name: str = 'test'
     lr: float = 0.001
-    trace_model: bool = False
-    logger_cfg: LoggerCfg = field(default_factory=LoggerCfg)
+    # trace_model: bool = False  # add to learner code for trace model
+    # logger_cfg: LoggerCfg = field(default_factory=LoggerCfg)
 
 
 class Learner:
