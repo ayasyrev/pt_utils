@@ -32,7 +32,6 @@ def set_seed(SEED_NUM: int = 2021,
              torch_benchmark: bool = True,
              torch_deterministic: bool = False,
              ) -> None:
-    print(f"seeding: {SEED_NUM}")
     if seed_pythonhash:
         os.environ['PYTHONHASHSEED'] = str(SEED_NUM)
     if seed_random:
@@ -48,7 +47,7 @@ def set_seed(SEED_NUM: int = 2021,
     torch.backends.cudnn.deterministic = torch_deterministic
 
 
-def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
+def load_obj(obj_path: str = 'xxx.yyy', default_obj_path: str = "") -> Any:
     """Extract an object from a given path.
         Args:
             obj_path: Path to an object to be extracted, including the object name.
@@ -68,4 +67,9 @@ def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
         raise AttributeError(
             "Object `{}` cannot be loaded from `{}`.".format(obj_name, obj_path)
         )
-    return getattr(module_obj, obj_name)
+    return getattr(module_obj, obj_name)    
+
+
+def load_model_state(model: torch.nn.Module, state_path: str) -> None:
+    state_dict = torch.load(state_path)
+    model.load_state_dict(state_dict)

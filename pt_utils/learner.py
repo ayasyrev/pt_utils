@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import time
 from typing import Union
 
@@ -10,7 +10,7 @@ from rich.progress import Progress
 
 from accelerate import Accelerator
 
-from pt_utils.logger import LoggerCfg, Logger
+from pt_utils.logger import Logger
 
 
 def format_time(seconds: float, long: bool = True) -> str:
