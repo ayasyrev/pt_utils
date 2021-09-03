@@ -24,6 +24,29 @@ def _unfold(parent, element):
     return res
 
 
+def format_time(seconds: float, long: bool = True) -> str:
+    "Format secons to mm:ss, optoinal mm:ss.ms"
+    seconds_int = int(seconds)
+    min, sec = (seconds_int // 60) % 60, seconds_int % 60
+    res = f'{min:02d}:{sec:02d}'
+    if long:
+        res = '.'.join([res, f'{int((seconds - seconds_int) * 10)}'])
+    return res
+
+
+def format_log(to_log: dict) -> str:
+    items = []
+    for key, value in to_log.items():
+        if type(value) is int:
+            items.append(str(value))
+        elif type(value) is float:
+            if 'time' in key:
+                items.append(format_time(value))
+            else:
+                items.append(f"{value:0.4f}")
+    return ' '.join([f"{item:>9}" for item in items])
+
+
 def set_seed(SEED_NUM: int = 2021,
              seed_pythonhash: bool = True,
              seed_random: bool = True,
