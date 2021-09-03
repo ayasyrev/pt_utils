@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import time
 from typing import Union
 
@@ -36,23 +35,17 @@ def format_log(to_log: dict) -> str:
     return ' '.join([f"{item:>9}" for item in items])
 
 
-@dataclass
-class LearnerCfg:
-    project_name: str = 'test'
-    lr: float = 0.001
-    # trace_model: bool = False  # add to learner code for trace model
-    # logger_cfg: LoggerCfg = field(default_factory=LoggerCfg)
-
-
 class Learner:
     """Basic wrapper over base train loop.
     Handle model, dataloaders, optimizer and loss function.
     Uses acceleartor as handler over different devices, progress bar and simple logger capabilites."""
-    def __init__(self, model: nn.Module, loss_fn, opt_fn, train_dl, val_dl,
-                 cfg: LearnerCfg = LearnerCfg(),
+    def __init__(self, model: nn.Module,
+                 train_dl, val_dl,
+                 opt_fn, loss_fn,
                  accelerator: Union[Accelerator, None] = None,
                  batch_tfm: Union[nn.Module, None] = None,
-                 logger: Logger = None) -> None:
+                 logger: Logger = None,
+                 cfg: dict = None) -> None:
         if accelerator is None:
             self.accelerator = Accelerator()
         else:
