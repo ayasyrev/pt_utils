@@ -5,12 +5,11 @@ import torch
 import torch.nn as nn
 
 from rich import print
-from rich.progress import Progress
 
 from accelerate import Accelerator
 
 from pt_utils.logger import Logger
-from pt_utils.utils import format_log, format_time
+from pt_utils.utils import format_log, format_time, ProgressBar
 
 
 class Learner:
@@ -47,31 +46,31 @@ class Learner:
         return self.opt_fn(self.model.parameters(), lr=self.cfg.lr)
 
     def fit(self, epochs: int):
-        self.befor_fit()
+        self.befor_fit(epochs)
 
-        main_job = self.progress_bar.add_task('fit....', total=epochs)
         for epoch in range(1, epochs + 1):
-            self.progress_bar.tasks[main_job].description = f"ep {epoch} of {epochs}"
+            self.progress_bar.epoch_start(epoch)
             self.model.train()
             start_time = time.time()
-            len_train_dl = len(self.train_dl)
-            train_job = self.progress_bar.add_task('train', total=len_train_dl)
+
+            # train
+            self.progress_bar.train_start()
             for batch_num, batch in enumerate(self.train_dl):
-                self.progress_bar._tasks[train_job].description = f"batch {batch_num}/{len_train_dl}"
                 loss = self.loss_batch(batch)
                 self.accelerator.backward(loss)
                 self.opt.step()
                 self.opt.zero_grad()
-                self.progress_bar.update(train_job, advance=1)
+                self.progress_bar.train_batch_end(batch_num)
             train_time = time.time() - start_time
+
+            # validate
+            self.progress_bar.val_start()
             self.model.eval()
             with torch.no_grad():
                 valid_losses = []
-                len_val_dl = len(self.val_dl)
-                val_job = self.progress_bar.add_task('validate...', total=len_val_dl)
                 for batch_num, batch in enumerate(self.val_dl):
                     valid_losses.append(self.loss_batch(batch).item())  # cpu? dont collect -> just summ?
-                    self.progress_bar.update(val_job, advance=1)
+                    self.progress_bar.val_batch_end()
                 valid_loss = sum(valid_losses) / len(valid_losses)
             epoch_time = time.time() - start_time
             val_time = epoch_time - train_time
@@ -79,9 +78,7 @@ class Learner:
                       'time': epoch_time, 'train_time': train_time, 'val_time': val_time}
             print(format_log(to_log))
             self.logger.log(to_log)
-            self.progress_bar.remove_task(train_job)
-            self.progress_bar.remove_task(val_job)
-            self.progress_bar.update(main_job, advance=1)
+            self.progress_bar.epoch_end()
         self.after_fit()
 
     def loss_batch(self, batch):
@@ -91,7 +88,7 @@ class Learner:
         pred = self.model(input)
         return self.loss_fn(pred, batch[1])
 
-    def befor_fit(self):
+    def befor_fit(self, epochs):
         header = ['epoch', 'train_loss', 'val_loss', 'time', 'train_time', 'val_time']
         self.train_start_time = time.time()
         self.logger.start(header=header)
@@ -100,12 +97,13 @@ class Learner:
                                                                                     self.train_dl, self.val_dl)
         if self.batch_tfm:
             self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
-        self.progress_bar = Progress(transient=True)
-        self.progress_bar.start()
+        self.progress_bar = ProgressBar()
+        self.progress_bar.fit_start(epochs, train_dl_len=len(self.train_dl), val_dl_len=len(self.val_dl))
+
         print(' '.join([f"{value:^9}" for value in header]))
 
     def after_fit(self):
         full_time = time.time() - self.train_start_time
-        self.progress_bar.print(f"full time: {format_time(full_time)}")
+        print(f"full time: {format_time(full_time)}")
         self.logger.finish()
-        self.progress_bar.stop()
+        self.progress_bar.fit_end()
