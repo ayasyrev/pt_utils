@@ -1,10 +1,9 @@
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Union
 from pathlib import Path, PosixPath
 import os
 
-from omegaconf import DictConfig
 import wandb
 
 from .utils import flat_dict
@@ -78,8 +77,6 @@ class LocalLogger(Logger):
 
     def log_cfg(self, cfg: dict):
         with open(self.log_path / self.cfg.cfg_file, 'w') as f:
-            if type(cfg) is not DictConfig:
-                cfg = asdict(cfg)
             for k, v in flat_dict(cfg).items():
                 f.write(f"{k}: {v}" + '\n')
 
@@ -103,12 +100,11 @@ class WandbLogger(Logger):
     def log(self, metrics: dict):
         self.run.log(metrics)
 
-    # def watch(self, model):
     def trace_model(self, model):
         self.run.watch(model, log=self.cfg.log_type)
 
     def log_cfg(self, cfg):
-        self.run.config.update(flat_dict(asdict(cfg)))
+        self.run.config.update(flat_dict(cfg))
 
     def finish(self):
         self.run.finish()

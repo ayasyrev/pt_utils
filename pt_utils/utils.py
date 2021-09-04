@@ -1,13 +1,20 @@
+from dataclasses import asdict
 import importlib
 import os
 import random
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
+from omegaconf.omegaconf import OmegaConf, DictConfig
 import torch
 
 
-def flat_dict(cfg_dict: dict):
+def flat_dict(cfg_dict: Union[dict, DictConfig]):
+    if type(cfg_dict) is not dict:
+        if type(cfg_dict) is DictConfig:
+            cfg_dict = OmegaConf.to_container(cfg_dict)
+        else:  # dataclass like
+            cfg_dict = asdict(cfg_dict)
     res = {}
     for item, value in cfg_dict.items():
         res.update(_unfold(item, value))
