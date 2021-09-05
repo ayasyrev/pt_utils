@@ -1,5 +1,5 @@
 import time
-from typing import Union
+from typing import List, Union
 
 import torch
 import torch.nn as nn
@@ -22,7 +22,7 @@ class Learner:
                  opt_fn, loss_fn,
                  accelerator: Union[Accelerator, None] = None,
                  batch_tfm: Union[nn.Module, None] = None,
-                 logger: Logger = None,
+                 logger: Union[Logger, List[Logger]] = None,
                  progress: bool = True,  # use progress
                  cfg: dict = None) -> None:
         if accelerator is None:
@@ -40,7 +40,12 @@ class Learner:
         self.opt = self.reset_opt()
 
         self.batch_tfm = batch_tfm
-        self.logger = Logger() if logger is None else logger
+        if logger is None:
+            self.loggers = [Logger()]
+        elif type(logger) is list:
+            self.loggers = logger
+        else:
+            self.loggers = [logger]
         self.progress = progress
 
     def reset_opt(self):
@@ -113,15 +118,17 @@ class Learner:
                   'time': epoch_time, 'train_time': self.train_time,
                   'val_time': self.val_time}
         print(format_log(to_log))
-        self.logger.log(to_log)
+        for logger in self.loggers:
+            logger.log(to_log)
         if self.progress:
             self.progress_bar.epoch_end()
 
     def befor_fit(self, epochs):
         header = ['epoch', 'train_loss', 'val_loss', 'accuracy', 'time', 'train_time', 'val_time']
         self.train_start_time = time.time()
-        self.logger.start(header=header)
-        self.logger.log_cfg(self.cfg)
+        for logger in self.loggers:
+            logger.start(header=header)
+            logger.log_cfg(self.cfg)
         self.model, self.opt, self.train_dl, self.val_dl = self.accelerator.prepare(self.model, self.opt,
                                                                                     self.train_dl, self.val_dl)
         if self.batch_tfm:
@@ -135,6 +142,7 @@ class Learner:
     def after_fit(self):
         full_time = time.time() - self.train_start_time
         print(f"full time: {format_time(full_time)}")
-        self.logger.finish()
+        for logger in self.loggers:
+            logger.finish()
         if self.progress:
             self.progress_bar.fit_end()
