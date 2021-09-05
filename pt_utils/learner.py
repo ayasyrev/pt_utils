@@ -40,9 +40,7 @@ class Learner:
         self.opt = self.reset_opt()
 
         self.batch_tfm = batch_tfm
-        if logger is None:
-            logger = Logger()
-        self.logger = logger
+        self.logger = Logger() if logger is None else logger
         self.progress = progress
 
     def reset_opt(self):
