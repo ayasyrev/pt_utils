@@ -152,7 +152,7 @@ class ProgressBar(Progress):
             self._tasks[self.train_job].description = f"batch {batch_num + 1}/{self.len_train_dl}"
 
     def val_start(self):
-        self.val_job = self.add_task('validate')
+        self.val_job = self.add_task('validate', total=self.len_val_dl)
 
     def val_batch_end(self):
         self.update(self.val_job, advance=1)
