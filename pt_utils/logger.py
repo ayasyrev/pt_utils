@@ -1,10 +1,9 @@
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Union
 from pathlib import Path, PosixPath
 import os
 
-from omegaconf import DictConfig
 import wandb
 
 from .utils import flat_dict
@@ -16,9 +15,7 @@ class LoggerCfg:
 
 
 class Logger:
-    def __init__(self, project: str = '', cfg: dict = None) -> None:
-        self.project = project  # todo remove from default
-        self.cfg = cfg
+    # def __init__(self) -> None:
 
     def start(self, *args, **kwargs):
         pass
@@ -36,34 +33,23 @@ class Logger:
         pass
 
 
-@dataclass
-class LocalLoggerCfg(LoggerCfg):
-    log_path: Union[str, PosixPath] = '.'
-    log_file: str = 'log.csv'
-    cfg_file: str = 'log.cfg'
-    add_data: bool = False
-
-
 class LocalLogger(Logger):
     '''Log locally.'''
     def __init__(self,
-                 project: Union[str, None] = None,
-                 cfg: LocalLoggerCfg = None) -> None:
-        if cfg is None:
-            cfg = LocalLoggerCfg()
-        if project is None:
-            project = cfg.project
-        super().__init__(project=project, cfg=cfg)
-        # log_path = '.' if log_path is None else log_path
-        self.log_path = Path(self.cfg.log_path)
+                 log_path: Union[str, PosixPath] = '.',
+                 log_file: str = 'log.csv',
+                 cfg_file: str = 'log.cfg',
+                 add_data: bool = False) -> None:
+        super().__init__()
+        self.log_path = Path(log_path)
         self.log_path.mkdir(exist_ok=True)
-        # self.log_file = 'log.csv' if log_file is None else log_file
-        # self.cfg_file = 'log.cfg' if cfg_file is None else cfg_file
-        # self.file = None
-        self.mode = 'a' if self.cfg.add_data else 'w'
+        self.log_file = log_file
+        self.cfg_file = cfg_file
+        self.file = None
+        self.mode = 'a' if add_data else 'w'
 
     def start(self, *args, **kwargs):
-        self.file = open(self.log_path / self.cfg.log_file, mode=self.mode)
+        self.file = open(self.log_path / self.log_file, mode=self.mode)
         header = kwargs.get('header', None)
         if header is not None:
             self.file.write(','.join(header) + '\n')
@@ -77,9 +63,7 @@ class LocalLogger(Logger):
         os.fsync(self.file.fileno())
 
     def log_cfg(self, cfg: dict):
-        with open(self.log_path / self.cfg.cfg_file, 'w') as f:
-            if type(cfg) is not DictConfig:
-                cfg = asdict(cfg)
+        with open(self.log_path / self.cfg_file, 'w') as f:
             for k, v in flat_dict(cfg).items():
                 f.write(f"{k}: {v}" + '\n')
 
@@ -91,9 +75,9 @@ class WandbCfg(LoggerCfg):
 
 class WandbLogger(Logger):
     def __init__(self, project: Union[str, None] = None, cfg: WandbCfg = WandbCfg()) -> None:
-        if project is None:
-            project = cfg.project
-        super().__init__(project, cfg)
+        super().__init__()
+        self.project = cfg.project if project is None else project
+        self.cfg = cfg
 
     def start(self, *args, **kwargs):
         self.run = wandb.init(project=self.project)
@@ -103,12 +87,11 @@ class WandbLogger(Logger):
     def log(self, metrics: dict):
         self.run.log(metrics)
 
-    # def watch(self, model):
     def trace_model(self, model):
         self.run.watch(model, log=self.cfg.log_type)
 
     def log_cfg(self, cfg):
-        self.run.config.update(flat_dict(asdict(cfg)))
+        self.run.config.update(flat_dict(cfg))
 
     def finish(self):
         self.run.finish()
