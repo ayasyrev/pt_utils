@@ -10,6 +10,7 @@ from accelerate import Accelerator
 
 from pt_utils.logger import Logger
 from pt_utils.utils import format_log, format_time, ProgressBar
+from pt_utils.metrics import accuracy
 
 
 class Learner:
@@ -55,17 +56,16 @@ class Learner:
             self.epoch_end()
         self.after_fit()
 
-    def loss_batch(self, batch):
-        input = batch[0]
+    def one_batch(self, input):
         if self.batch_tfm is not None:
             input = self.batch_tfm(input)
         pred = self.model(input)
-        return self.loss_fn(pred, batch[1])
+        return pred
 
     def train(self) -> None:
         self.model.train()
         for batch_num, batch in enumerate(self.train_dl):
-            loss = self.loss_batch(batch)
+            loss = self.loss_fn(self.one_batch([batch[0]]), batch[1])
             self.accelerator.backward(loss)
             self.opt.step()
             # self.opt.zero_grad(set_to_none=True)
@@ -80,12 +80,16 @@ class Learner:
         with torch.no_grad():
             # valid_losses = []
             valid_losses = torch.tensor(0., device=self.accelerator.device)
+            acc = torch.tensor(0., device=self.accelerator.device)
             for batch_num, batch in enumerate(self.val_dl):
                 # valid_losses.append(self.loss_batch(batch).item())  # cpu? dont collect -> just summ?
-                valid_losses.add(self.loss_batch(batch))
+                pred = self.one_batch(batch)
+                valid_losses.add_(self.loss_fn(pred, batch[1]))
+                acc.add_(accuracy(pred, batch[1])[0][0])
                 self.progress_bar.val_batch_end()
             # self.valid_loss = sum(valid_losses) / len(valid_losses)
             self.valid_loss = valid_losses.item() / len(self.val_dl)
+            self.accuracy = acc.item() / len(self.val_dl)
 
     def epoch_start(self) -> None:
         self.progress_bar.train_start()
@@ -93,8 +97,9 @@ class Learner:
     def epoch_end(self) -> None:
         epoch_time = self.progress_bar._tasks[self.progress_bar.train_job].finished_time +\
             self.progress_bar._tasks[self.progress_bar.val_job].finished_time
-        to_log = {'epoch': self.progress_bar._tasks[self.progress_bar.main_job].completed,
+        to_log = {'epoch': self.progress_bar._tasks[self.progress_bar.main_job].completed + 1,
                   'train_loss': self.last_loss, 'val_loss': self.valid_loss,
+                  'accuracy': self.accuracy,
                   'time': epoch_time, 'train_time': self.progress_bar._tasks[self.progress_bar.train_job].finished_time,
                   'val_time': self.progress_bar._tasks[self.progress_bar.val_job].finished_time}
         print(format_log(to_log))
@@ -102,7 +107,7 @@ class Learner:
         self.progress_bar.epoch_end()
 
     def befor_fit(self, epochs):
-        header = ['epoch', 'train_loss', 'val_loss', 'time', 'train_time', 'val_time']
+        header = ['epoch', 'train_loss', 'val_loss', 'accuracy', 'time', 'train_time', 'val_time']
         self.train_start_time = time.time()
         self.logger.start(header=header)
         self.logger.log_cfg(self.cfg)
