@@ -2,6 +2,7 @@ import importlib
 import os
 import random
 from dataclasses import asdict
+from functools import partial
 from typing import Any, Union
 
 import numpy as np
@@ -101,6 +102,13 @@ def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
             "Object `{}` cannot be loaded from `{}`.".format(obj_name, obj_path)
         )
     return getattr(module_obj, obj_name)
+
+
+def load_partial_func(**kwargs):
+    """Return partial func, _target_ as function object with paremeters from hydra config."""
+    obj_path = kwargs.pop('function', None)
+    func = load_obj(obj_path)
+    return partial(func, **kwargs)
 
 
 def load_model_state(model: torch.nn.Module, state_path: str) -> None:
