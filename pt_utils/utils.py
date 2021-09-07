@@ -111,6 +111,11 @@ def load_partial_func(**kwargs):
     return partial(func, **kwargs)
 
 
+def load_args_list(**kwargs):
+    '''Return list of args. For instantiate list of obj by Hydra'''
+    return list(kwargs.values())
+
+
 def load_model_state(model: torch.nn.Module, state_path: str) -> None:
     """Load model state from given path.
 
