@@ -126,11 +126,11 @@ class Learner:
     def befor_fit(self, epochs):
         header = ['epoch', 'train_loss', 'val_loss', 'accuracy', 'time', 'train_time', 'val_time']
         self.train_start_time = time.time()
-        for logger in self.loggers:
-            logger.start(header=header)
-            logger.log_cfg(self.cfg)
         self.model, self.opt, self.train_dl, self.val_dl = self.accelerator.prepare(self.model, self.opt,
                                                                                     self.train_dl, self.val_dl)
+        for logger in self.loggers:
+            logger.start(header=header, model=self.model)
+            logger.log_cfg(self.cfg)
         if self.batch_tfm:
             self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
         if self.progress:

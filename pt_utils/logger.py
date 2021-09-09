@@ -1,5 +1,4 @@
 
-from dataclasses import dataclass
 from typing import Union
 from pathlib import Path, PosixPath
 import os
@@ -9,11 +8,6 @@ import wandb
 from .utils import flat_dict
 
 
-@dataclass
-class LoggerCfg:
-    project: str = ''
-
-
 class Logger:
     # def __init__(self) -> None:
 
@@ -21,9 +15,6 @@ class Logger:
         pass
 
     def log(self, metrics: dict):
-        pass
-
-    def trace_model(self, model):
         pass
 
     def log_cfg(self, cfg: dict):
@@ -68,27 +59,26 @@ class LocalLogger(Logger):
                 f.write(f"{k}: {v}" + '\n')
 
 
-@dataclass
-class WandbCfg(LoggerCfg):
-    log_type: str = 'gradients'  # 'all' / 'parameters' / None
-
-
 class WandbLogger(Logger):
-    def __init__(self, project: Union[str, None] = None, cfg: WandbCfg = WandbCfg()) -> None:
+    def __init__(self, project: Union[str, None] = None,
+                 trace_model: bool = False,
+                 log_type: str = None  # 'gradients' / 'all' / 'parameters' / None
+                 ) -> None:
         super().__init__()
-        self.project = cfg.project if project is None else project
-        self.cfg = cfg
+        self.project = 'def_name' if project is None else project
+        self.log_type = log_type
+        self.trace_model = trace_model
 
-    def start(self, *args, **kwargs):
+    def start(self, model=None, *args, **kwargs):
         self.run = wandb.init(project=self.project)
         self.run.name = '-'.join([self.run.name.split('-')[-1], self.run.id])
         print(f"logger name: {self.run.name}, num: {self.run.name.split('-')[0]}")
+        if self.trace_model:
+            if model is not None:
+                self.run.watch(model, log=self.log_type)
 
     def log(self, metrics: dict):
         self.run.log(metrics)
-
-    def trace_model(self, model):
-        self.run.watch(model, log=self.cfg.log_type)
 
     def log_cfg(self, cfg):
         self.run.config.update(flat_dict(cfg))
