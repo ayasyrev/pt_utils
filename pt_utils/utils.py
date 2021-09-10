@@ -33,6 +33,18 @@ def _unfold(parent, element):
     return res
 
 
+def list_2_str(input: list) -> str:
+    '''Convert list to string.'''
+    return f"[{', '.join(map(str, input))}]"
+
+
+def clear_dict(input: dict) -> dict:
+    for k, v in input.items():
+        if isinstance(v, list):
+            input[k] = list_2_str(v)
+    return input
+
+
 def format_time(seconds: float, long: bool = True) -> str:
     "Format secons to mm:ss, optoinal mm:ss.ms"
     seconds_int = int(seconds)

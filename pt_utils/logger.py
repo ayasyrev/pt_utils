@@ -3,9 +3,10 @@ from typing import Union
 from pathlib import Path, PosixPath
 import os
 
+from torch.utils.tensorboard import SummaryWriter
 import wandb
 
-from .utils import flat_dict
+from .utils import flat_dict, clear_dict
 
 
 class Logger:
@@ -30,7 +31,8 @@ class LocalLogger(Logger):
                  log_path: Union[str, PosixPath] = '.',
                  log_file: str = 'log.csv',
                  cfg_file: str = 'log.cfg',
-                 add_data: bool = False) -> None:
+                 add_data: bool = False,
+                 project: str = '') -> None:
         super().__init__()
         self.log_path = Path(log_path)
         self.log_path.mkdir(exist_ok=True)
@@ -85,3 +87,24 @@ class WandbLogger(Logger):
 
     def finish(self):
         self.run.finish()
+
+
+class TensorBoardLogger(Logger):
+    def __init__(self, log_dir: Union[str, None] = None) -> None:
+        super().__init__()
+        self.log_dir = log_dir or 'def_name'
+
+    def start(self, *args, **kwargs):
+        self.writer = SummaryWriter(log_dir=self.log_dir)
+
+    def log_cfg(self, cfg: dict):
+        self.hparams = clear_dict(flat_dict(cfg))
+
+    def log(self, metrics: dict):
+        for k, v in metrics.items():
+            self.writer.add_scalar(k, v, global_step=metrics['epoch'])
+        self.last_log = metrics
+
+    def finish(self):
+        self.writer.add_hparams(self.hparams, {'acc': self.last_log['accuracy']})
+        self.writer.close()
