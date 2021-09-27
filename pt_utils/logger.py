@@ -5,8 +5,9 @@ import os
 
 from torch.utils.tensorboard import SummaryWriter
 import wandb
+from omegaconf import OmegaConf
 
-from .utils import flat_dict, clear_dict
+from .utils import flat_dict
 
 
 class Logger:
@@ -57,8 +58,9 @@ class LocalLogger(Logger):
 
     def log_cfg(self, cfg: dict):
         with open(self.log_path / self.cfg_file, 'w') as f:
-            for k, v in flat_dict(cfg).items():
-                f.write(f"{k}: {v}" + '\n')
+            # for k, v in flat_dict(cfg).items():
+            #     f.write(f"{k}: {v}" + '\n')
+            f.write(OmegaConf.to_yaml(cfg, resolve=True))
 
 
 class WandbLogger(Logger):
@@ -97,8 +99,8 @@ class TensorBoardLogger(Logger):
     def start(self, *args, **kwargs):
         self.writer = SummaryWriter(log_dir=self.log_dir)
 
-    def log_cfg(self, cfg: dict):
-        self.hparams = clear_dict(flat_dict(cfg))
+    # def log_cfg(self, cfg: dict):
+    #     self.hparams = clear_dict(flat_dict(cfg))
 
     def log(self, metrics: dict):
         for k, v in metrics.items():
@@ -106,5 +108,5 @@ class TensorBoardLogger(Logger):
         self.last_log = metrics
 
     def finish(self):
-        self.writer.add_hparams(self.hparams, {'acc': self.last_log['accuracy']})
+        # self.writer.add_hparams(self.hparams, {'acc': self.last_log['accuracy']})
         self.writer.close()
