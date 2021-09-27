@@ -1,17 +1,13 @@
 
-from dataclasses import dataclass
 from typing import Union
 from pathlib import Path, PosixPath
 import os
 
+from torch.utils.tensorboard import SummaryWriter
 import wandb
+from omegaconf import OmegaConf
 
 from .utils import flat_dict
-
-
-@dataclass
-class LoggerCfg:
-    project: str = ''
 
 
 class Logger:
@@ -21,9 +17,6 @@ class Logger:
         pass
 
     def log(self, metrics: dict):
-        pass
-
-    def trace_model(self, model):
         pass
 
     def log_cfg(self, cfg: dict):
@@ -39,7 +32,8 @@ class LocalLogger(Logger):
                  log_path: Union[str, PosixPath] = '.',
                  log_file: str = 'log.csv',
                  cfg_file: str = 'log.cfg',
-                 add_data: bool = False) -> None:
+                 add_data: bool = False,
+                 project: str = '') -> None:
         super().__init__()
         self.log_path = Path(log_path)
         self.log_path.mkdir(exist_ok=True)
@@ -64,34 +58,55 @@ class LocalLogger(Logger):
 
     def log_cfg(self, cfg: dict):
         with open(self.log_path / self.cfg_file, 'w') as f:
-            for k, v in flat_dict(cfg).items():
-                f.write(f"{k}: {v}" + '\n')
-
-
-@dataclass
-class WandbCfg(LoggerCfg):
-    log_type: str = 'gradients'  # 'all' / 'parameters' / None
+            # for k, v in flat_dict(cfg).items():
+            #     f.write(f"{k}: {v}" + '\n')
+            f.write(OmegaConf.to_yaml(cfg, resolve=True))
 
 
 class WandbLogger(Logger):
-    def __init__(self, project: Union[str, None] = None, cfg: WandbCfg = WandbCfg()) -> None:
+    def __init__(self, project: Union[str, None] = None,
+                 trace_model: bool = False,
+                 log_type: str = None  # 'gradients' / 'all' / 'parameters' / None
+                 ) -> None:
         super().__init__()
-        self.project = cfg.project if project is None else project
-        self.cfg = cfg
+        self.project = 'def_name' if project is None else project
+        self.log_type = log_type
+        self.trace_model = trace_model
 
-    def start(self, *args, **kwargs):
+    def start(self, model=None, *args, **kwargs):
         self.run = wandb.init(project=self.project)
         self.run.name = '-'.join([self.run.name.split('-')[-1], self.run.id])
         print(f"logger name: {self.run.name}, num: {self.run.name.split('-')[0]}")
+        if self.trace_model:
+            if model is not None:
+                self.run.watch(model, log=self.log_type)
 
     def log(self, metrics: dict):
         self.run.log(metrics)
-
-    def trace_model(self, model):
-        self.run.watch(model, log=self.cfg.log_type)
 
     def log_cfg(self, cfg):
         self.run.config.update(flat_dict(cfg))
 
     def finish(self):
         self.run.finish()
+
+
+class TensorBoardLogger(Logger):
+    def __init__(self, log_dir: Union[str, None] = None) -> None:
+        super().__init__()
+        self.log_dir = log_dir or 'def_name'
+
+    def start(self, *args, **kwargs):
+        self.writer = SummaryWriter(log_dir=self.log_dir)
+
+    # def log_cfg(self, cfg: dict):
+    #     self.hparams = clear_dict(flat_dict(cfg))
+
+    def log(self, metrics: dict):
+        for k, v in metrics.items():
+            self.writer.add_scalar(k, v, global_step=metrics['epoch'])
+        self.last_log = metrics
+
+    def finish(self):
+        # self.writer.add_hparams(self.hparams, {'acc': self.last_log['accuracy']})
+        self.writer.close()

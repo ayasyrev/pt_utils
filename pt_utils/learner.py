@@ -96,8 +96,8 @@ class Learner:
                 pred = self.one_batch(batch[0])
                 valid_losses.add_(self.loss_fn(pred, batch[1]))
                 acc.add_(accuracy(pred, batch[1])[0][0])
-            if self.progress:
-                self.progress_bar.val_batch_end()
+                if self.progress:
+                    self.progress_bar.val_batch_end()
             # self.valid_loss = sum(valid_losses) / len(valid_losses)
             self.valid_loss = valid_losses.item() / len(self.val_dl)
             self.accuracy = acc.item() / len(self.val_dl)
@@ -126,11 +126,11 @@ class Learner:
     def befor_fit(self, epochs):
         header = ['epoch', 'train_loss', 'val_loss', 'accuracy', 'time', 'train_time', 'val_time']
         self.train_start_time = time.time()
-        for logger in self.loggers:
-            logger.start(header=header)
-            logger.log_cfg(self.cfg)
         self.model, self.opt, self.train_dl, self.val_dl = self.accelerator.prepare(self.model, self.opt,
                                                                                     self.train_dl, self.val_dl)
+        for logger in self.loggers:
+            logger.start(header=header, model=self.model)
+            logger.log_cfg(self.cfg)
         if self.batch_tfm:
             self.batch_tfm = self.accelerator.prepare(self.batch_tfm)
         if self.progress:
