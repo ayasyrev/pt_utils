@@ -35,3 +35,13 @@ def load_partial_func(**kwargs):
 def load_args_list(**kwargs):
     '''Return list of args. For instantiate list of obj by Hydra'''
     return list(kwargs.values())
+
+
+def call_obj(obj):
+    return obj()
+
+
+def call_class(**kwargs):
+    class_name = kwargs.pop('class_name', None)
+    obj = load_obj(class_name)
+    return obj(**kwargs)()
