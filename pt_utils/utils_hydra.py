@@ -26,7 +26,7 @@ def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
 
 
 def load_partial_func(**kwargs):
-    """Return partial func, _target_ as function object with paremeters from hydra config."""
+    """Return partial func, _target_ as function object with parameters from hydra config."""
     obj_path = kwargs.pop('function', None)
     func = load_obj(obj_path)
     return partial(func, **kwargs)
