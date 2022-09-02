@@ -19,7 +19,7 @@ def fit(
     train_dl,
     val_dl,
     debug_run: bool = False,
-    debug_num_batches: int = 5
+    debug_num_batches: int = 5,
 ):
     model.to(device)
     opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
@@ -28,9 +28,16 @@ def fit(
 
     # mb.write(['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time'], table=True)
     progress_bar.start()
-    header = ['epoch', 'train_loss', 'val loss', 'time', 'train time', 'val_time']  # , 'val_time', 'train_time']
-    progress_bar.print(' '.join([f"{value:>9}" for value in header]))
-    main_job = progress_bar.add_task('fit...', total=epochs)
+    header = [
+        "epoch",
+        "train_loss",
+        "val loss",
+        "time",
+        "train time",
+        "val_time",
+    ]  # , 'val_time', 'train_time']
+    progress_bar.print(" ".join([f"{value:>9}" for value in header]))
+    main_job = progress_bar.add_task("fit...", total=epochs)
     # for epoch in mb:
     for epoch in range(epochs):
         progress_bar.tasks[main_job].description = f"ep {epoch + 1} of {epochs}"
@@ -40,9 +47,11 @@ def fit(
         start_time = time.time()
         # for batch_num, batch in enumerate(progress_bar(train_dl, parent=mb)):
         len_train_dl = len(train_dl)
-        train_job = progress_bar.add_task('train', total=len_train_dl)
+        train_job = progress_bar.add_task("train", total=len_train_dl)
         for batch_num, batch in enumerate(train_dl):
-            progress_bar._tasks[train_job].description = f"batch {batch_num}/{len_train_dl}"
+            progress_bar._tasks[
+                train_job
+            ].description = f"batch {batch_num}/{len_train_dl}"
             if debug_run and batch_num == debug_num_batches:
                 break
             loss = loss_batch(model, loss_fn, batch)
@@ -54,7 +63,7 @@ def fit(
         train_time = time.time() - start_time
         model.eval()
         len_val_dl = len(val_dl)
-        val_job = progress_bar.add_task('validate...', total=len_val_dl)
+        val_job = progress_bar.add_task("validate...", total=len_val_dl)
         with torch.no_grad():
             valid_loss = []
             # for batch_num, batch in enumerate(progress_bar(val_dl, parent=mb)):
@@ -67,9 +76,14 @@ def fit(
         epoch_time = time.time() - start_time
         # mb.write([str(epoch + 1), f'{loss:0.4f}', f'{valid_loss / len(val_dl):0.4f}',
         #          format_time(epoch_time), format_time(train_time), format_time(epoch_time - train_time)], table=True)
-        to_progress_bar = [f"{epoch + 1}", f"{loss:0.4f}", f"{valid_loss:0.4f}",
-                           f"{format_time(epoch_time)}", f"{format_time(train_time)}"]  # , f"{format_time(val_time)}"]
-        progress_bar.print(' '.join([f"{value:>9}" for value in to_progress_bar]))
+        to_progress_bar = [
+            f"{epoch + 1}",
+            f"{loss:0.4f}",
+            f"{valid_loss:0.4f}",
+            f"{format_time(epoch_time)}",
+            f"{format_time(train_time)}",
+        ]  # , f"{format_time(val_time)}"]
+        progress_bar.print(" ".join([f"{value:>9}" for value in to_progress_bar]))
         progress_bar.update(main_job, advance=1)
         progress_bar.remove_task(train_job)
         progress_bar.remove_task(val_job)
