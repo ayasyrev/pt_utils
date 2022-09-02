@@ -8,10 +8,14 @@ from torchvision.datasets.folder import default_loader
 
 class ImageFolderDataset(Dataset):
     """Image Dataset from folders, classes by folders"""
-    def __init__(self, root: Union[str, PosixPath],
-                 transform: Union[Callable, None] = None,
-                 loader: Callable = default_loader,
-                 limit_dataset: Union[bool, int] = False):
+
+    def __init__(
+        self,
+        root: Union[str, PosixPath],
+        transform: Union[Callable, None] = None,
+        loader: Callable = default_loader,
+        limit_dataset: Union[bool, int] = False,
+    ):
         """Create dataset from folder structured data.
 
         Args:
@@ -28,7 +32,10 @@ class ImageFolderDataset(Dataset):
         self.classes = sorted(list(set(fn.parent.name for fn in filenames)))
         self.class_to_idx = {item: num for num, item in enumerate(self.classes)}
         self.idx_to_class = {num: item for num, item in enumerate(self.classes)}
-        self.samples = [(str(filename), self.class_to_idx[filename.parent.name]) for filename in filenames]
+        self.samples = [
+            (str(filename), self.class_to_idx[filename.parent.name])
+            for filename in filenames
+        ]
 
     def __len__(self) -> int:
         return len(self.samples)
@@ -44,10 +51,14 @@ class ImageFolderDataset(Dataset):
 
 class ImageFolderDatasetMemory(Dataset):
     """Image Dataset from folders, classes by folders, loaded to memory"""
-    def __init__(self, root: Union[str, PosixPath],
-                 transform: Union[Callable, None] = None,
-                 loader: Callable = default_loader,
-                 limit_dataset: Union[bool, int] = False):
+
+    def __init__(
+        self,
+        root: Union[str, PosixPath],
+        transform: Union[Callable, None] = None,
+        loader: Callable = default_loader,
+        limit_dataset: Union[bool, int] = False,
+    ):
         """Create dataset from folder structured data.
         Samples wil be in memory.
 
@@ -65,7 +76,10 @@ class ImageFolderDatasetMemory(Dataset):
         self.classes = sorted(list(set(fn.parent.name for fn in filenames)))
         self.class_to_idx = {item: num for num, item in enumerate(self.classes)}
         self.idx_to_class = {num: item for num, item in enumerate(self.classes)}
-        self.samples = [(loader(str(filename)), self.class_to_idx[filename.parent.name]) for filename in filenames]
+        self.samples = [
+            (loader(str(filename)), self.class_to_idx[filename.parent.name])
+            for filename in filenames
+        ]
         self.filenames = filenames
 
     def __len__(self) -> int:

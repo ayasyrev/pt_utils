@@ -1,10 +1,11 @@
-
-from typing import Union
+from typing import IO, Any, Union
 from pathlib import Path, PosixPath
 import os
 
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 import wandb
+from wandb.wandb_run import Run
+
 from omegaconf import OmegaConf
 
 from .utils import flat_dict
@@ -27,55 +28,60 @@ class Logger:
 
 
 class LocalLogger(Logger):
-    '''Log locally.'''
-    def __init__(self,
-                 log_path: Union[str, PosixPath] = '.',
-                 log_file: str = 'log.csv',
-                 cfg_file: str = 'log.cfg',
-                 add_data: bool = False,
-                 project: str = '') -> None:
+    """Log locally."""
+
+    def __init__(
+        self,
+        log_path: Union[str, PosixPath] = ".",
+        log_file: str = "log.csv",
+        cfg_file: str = "log.cfg",
+        add_data: bool = False,
+        project: str = "",
+    ) -> None:
         super().__init__()
         self.log_path = Path(log_path)
         self.log_path.mkdir(exist_ok=True)
         self.log_file = log_file
         self.cfg_file = cfg_file
-        self.file = None
-        self.mode = 'a' if add_data else 'w'
+        self.file: Union[None, IO[Any]] = None
+        self.mode = "a" if add_data else "w"
 
     def start(self, *args, **kwargs):
         self.file = open(self.log_path / self.log_file, mode=self.mode)
-        header = kwargs.get('header', None)
+        header = kwargs.get("header", None)
         if header is not None:
-            self.file.write(','.join(header) + '\n')
+            self.file.write(",".join(header) + "\n")
 
     def finish(self):
         self.file.close()
 
     def log(self, metrics: dict):
-        self.file.write(",".join([str(values) for values in metrics.values()]) + '\n')
+        self.file.write(",".join([str(values) for values in metrics.values()]) + "\n")
         self.file.flush()
         os.fsync(self.file.fileno())
 
     def log_cfg(self, cfg: dict):
-        with open(self.log_path / self.cfg_file, 'w') as f:
+        with open(self.log_path / self.cfg_file, "w") as fh:
             # for k, v in flat_dict(cfg).items():
             #     f.write(f"{k}: {v}" + '\n')
-            f.write(OmegaConf.to_yaml(cfg, resolve=True))
+            fh.write(OmegaConf.to_yaml(cfg, resolve=True))
 
 
 class WandbLogger(Logger):
-    def __init__(self, project: Union[str, None] = None,
-                 trace_model: bool = False,
-                 log_type: str = None  # 'gradients' / 'all' / 'parameters' / None
-                 ) -> None:
+    def __init__(
+        self,
+        project: Union[str, None] = None,
+        trace_model: bool = False,
+        log_type: Union[str, None] = None,  # 'gradients' / 'all' / 'parameters' / None
+    ) -> None:
         super().__init__()
-        self.project = 'def_name' if project is None else project
+        self.project = "def_name" if project is None else project
         self.log_type = log_type
         self.trace_model = trace_model
 
     def start(self, model=None, *args, **kwargs):
-        self.run = wandb.init(project=self.project)
-        self.run.name = '-'.join([self.run.name.split('-')[-1], self.run.id])
+        self.run: Run = wandb.init(project=self.project)
+        self.run.name = "-".join([self.run.name.split("-")[-1], self.run.id])
         print(f"logger name: {self.run.name}, num: {self.run.name.split('-')[0]}")
         if self.trace_model:
             if model is not None:
@@ -94,7 +100,7 @@ class WandbLogger(Logger):
 class TensorBoardLogger(Logger):
     def __init__(self, log_dir: Union[str, None] = None) -> None:
         super().__init__()
-        self.log_dir = log_dir or 'def_name'
+        self.log_dir = log_dir or "def_name"
 
     def start(self, *args, **kwargs):
         self.writer = SummaryWriter(log_dir=self.log_dir)
@@ -104,7 +110,7 @@ class TensorBoardLogger(Logger):
 
     def log(self, metrics: dict):
         for k, v in metrics.items():
-            self.writer.add_scalar(k, v, global_step=metrics['epoch'])
+            self.writer.add_scalar(k, v, global_step=metrics["epoch"])
         self.last_log = metrics
 
     def finish(self):
