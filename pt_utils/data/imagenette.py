@@ -17,7 +17,8 @@ imagenette_len = {
 }
 
 imagenette_md5 = {
-    "imagenette2": "43b0d8047b7501984c47ae3c08110b62",
+    # "imagenette2": "43b0d8047b7501984c47ae3c08110b62",
+    "imagenette2": "fe2fc210e6bb7c5664d602c3cd71e612",
     "imagewoof2": "5eaf5bbf4bf16a77c616dc6e8dd5f8e9",
 }
 
