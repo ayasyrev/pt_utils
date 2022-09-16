@@ -8,7 +8,9 @@ DATADIR = Path("/Data/")
 
 imagenette_urls = {
     "imagenette2": "https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz",
+    "imagenette2-320": "https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz",
     "imagewoof2": "https://s3.amazonaws.com/fast-ai-imageclas/imagewoof2.tgz",
+    "imagewoof2-320": "https://s3.amazonaws.com/fast-ai-imageclas/imagewoof2-320.tgz",
 }
 
 imagenette_len = {
@@ -17,9 +19,10 @@ imagenette_len = {
 }
 
 imagenette_md5 = {
-    # "imagenette2": "43b0d8047b7501984c47ae3c08110b62",
     "imagenette2": "fe2fc210e6bb7c5664d602c3cd71e612",
-    "imagewoof2": "5eaf5bbf4bf16a77c616dc6e8dd5f8e9",
+    "imagenette2-320": "3df6f0d01a2c9592104656642f5e78a3",
+    "imagewoof2": "9aafe18bcdb1632c4249a76c458465ba",
+    "imagewoof2-320": "0f46d997ec2264e97609196c95897a44",
 }
 
 
