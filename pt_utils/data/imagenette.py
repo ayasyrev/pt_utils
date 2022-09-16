@@ -59,7 +59,7 @@ def prepare_data(
     ds_path = Path(data_dir) / name
 
     if check_data_exists(data_dir, name):
-        print(f"Data alredy exist, path: {ds_path}")
+        print(f"Data already exist, path: {ds_path}")
     else:
         dataset_url = imagenette_urls[name]
         download_and_extract_archive(
