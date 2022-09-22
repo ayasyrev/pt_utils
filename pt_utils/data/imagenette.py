@@ -15,7 +15,9 @@ imagenette_urls = {
 
 imagenette_len = {
     "imagenette2": {"train": 9469, "val": 3925},
+    "imagenette2-320": {"train": 9469, "val": 3925},
     "imagewoof2": {"train": 9025, "val": 3929},
+    "imagewoof2-320": {"train": 9025, "val": 3929},
 }
 
 imagenette_md5 = {
