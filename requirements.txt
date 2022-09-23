@@ -2,4 +2,5 @@
 # accelerate
 # fastprogress
 rich
+pydantic
 # wandb
