@@ -17,7 +17,7 @@ from pt_utils.metrics import accuracy
 class Learner:
     """Basic wrapper over base train loop.
     Handle model, dataloaders, optimizer and loss function.
-    Uses acceleartor as handler over different devices, progress bar and simple logger capabilites."""
+    Uses accelerator as handler over different devices, progress bar and simple logger capabilites."""
 
     def __init__(
         self,
@@ -60,7 +60,7 @@ class Learner:
         return self.opt_fn(self.model.parameters(), lr=self.cfg.lr)
 
     def fit(self, epochs: int):
-        self.befor_fit(epochs)
+        self.before_fit(epochs)
 
         for epoch in range(1, epochs + 1):
             self.epoch_start(epoch)
@@ -135,7 +135,7 @@ class Learner:
         if self.progress:
             self.progress_bar.epoch_end()
 
-    def befor_fit(self, epochs):
+    def before_fit(self, epochs):
         header = [
             "epoch",
             "train_loss",
