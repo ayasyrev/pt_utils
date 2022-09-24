@@ -1,9 +1,10 @@
-from pt_utils.data.get_image_files import get_img_files
+from pathlib import Path
 from typing import Callable, Tuple, Union
-from pathlib import Path, PosixPath
 
 from torch.utils.data import Dataset
-from torchvision.datasets.folder import default_loader
+
+from .get_image_files import get_img_files
+from .img_loader_pil import loader_pil
 
 
 class ImageFolderDataset(Dataset):
@@ -11,9 +12,9 @@ class ImageFolderDataset(Dataset):
 
     def __init__(
         self,
-        root: Union[str, PosixPath],
+        root: Union[str, Path],
         transform: Union[Callable, None] = None,
-        loader: Callable = default_loader,
+        loader: Callable = loader_pil,
         limit_dataset: Union[bool, int] = False,
     ):
         """Create dataset from folder structured data.
@@ -54,9 +55,9 @@ class ImageFolderDatasetMemory(Dataset):
 
     def __init__(
         self,
-        root: Union[str, PosixPath],
+        root: Union[str, Path],
         transform: Union[Callable, None] = None,
-        loader: Callable = default_loader,
+        loader: Callable = loader_pil,
         limit_dataset: Union[bool, int] = False,
     ):
         """Create dataset from folder structured data.

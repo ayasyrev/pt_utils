@@ -157,7 +157,7 @@ def val_transforms(image_size, extra_size=32):
 
 def val_transforms_simple(image_size, extra_size=32):
     """
-    Simplified version of val_transform - for presized images.
+    Simplified version of val_transform - for resized images.
     Only to tensor and normalize.
     """
     preprocessing = T.Compose(
