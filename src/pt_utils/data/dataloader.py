@@ -1,7 +1,9 @@
 from typing import Optional
+
 from torch.utils.data import DataLoader, Dataset
 
-from .dataset import DataCfg, get_dataset
+from .data_config import DataCfg
+from .dataset import get_dataset
 
 
 def get_dataloader(
