@@ -2,6 +2,8 @@ import math
 from typing import Union
 from torchvision import transforms as T
 
+from .simple_transforms import ResizeCrop
+
 
 def normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
     return T.Normalize(mean=mean, std=std)
@@ -39,8 +41,9 @@ def val_transforms(image_size: int, extra_size: Union[int, None] = None, xtra_pc
 
     preprocessing = T.Compose(
         [
-            T.Resize(image_size + extra_size),
-            T.CenterCrop(image_size),
+            ResizeCrop(image_size, extra_size),
+            # T.Resize(image_size + extra_size),
+            # T.CenterCrop(image_size),
             T.ToTensor(),
             normalize(),
         ]
