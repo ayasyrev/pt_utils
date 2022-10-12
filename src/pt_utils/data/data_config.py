@@ -8,11 +8,12 @@ from .img_loaders import img_libs_available, img_libs_supported
 
 
 class DataCfg(BaseModel):
-    train_data_path: Union[str, Path]
-    val_data_path: Union[str, Path]
+    train_data_path: Union[str, Path, None] = None
+    val_data_path: Union[str, Path, None] = None
     train_tfms: Optional[List[Callable]] = None
     val_tfms: Optional[List[Callable]] = None
     size: int = 224
+    extra_size: int = 32
     batch_size: int = 64
     num_workers: int = 4
     scale_min: float = 0.8

@@ -11,5 +11,5 @@ def get_transforms(cfg: DataCfg, train: bool):
     else:
         return val_transforms(
             image_size=cfg.size,
-            extra_size=16,
+            extra_size=cfg.extra_size,
         )
