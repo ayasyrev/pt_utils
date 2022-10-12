@@ -3,6 +3,7 @@ from typing import Union
 from torchvision import transforms as T
 
 from .simple_transforms import ResizeCrop
+from .normalize import Normalize
 
 
 def normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
@@ -23,7 +24,8 @@ def train_transforms(image_size, train_img_scale=(0.35, 1)):
             T.RandomResizedCrop(image_size, scale=train_img_scale),
             T.RandomHorizontalFlip(),
             T.ToTensor(),
-            normalize(),
+            # normalize(),
+            Normalize(),
         ]
     )
 
@@ -45,7 +47,8 @@ def val_transforms(image_size: int, extra_size: Union[int, None] = None, xtra_pc
             # T.Resize(image_size + extra_size),
             # T.CenterCrop(image_size),
             T.ToTensor(),
-            normalize(),
+            # normalize(),
+            Normalize(),
         ]
     )
     return preprocessing
