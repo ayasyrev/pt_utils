@@ -2,10 +2,10 @@ import time
 
 import torch
 import torch.nn as nn
-
-# from fastprogress.fastprogress import master_bar, progress_bar
-from fastprogress.fastprogress import format_time
 from rich.progress import Progress
+
+from .utils import format_time
+
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 

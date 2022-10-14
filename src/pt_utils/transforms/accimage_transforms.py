@@ -15,6 +15,21 @@ class AccimageImageToTensor(object):
         return self.__class__.__name__
 
 
+class AccimageToTensor(object):
+
+    def __init__(self, size: int, channels: int =3) -> None:
+        self.size = size
+        self.channels = channels
+        self.nppic = np.empty([channels, size, size], dtype=np.float32)
+
+    def __call__(self, img: accimage.Image) -> torch.Tensor:
+        img.copyto(self.nppic)
+        return torch.from_numpy(self.nppic)
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
 class AccimageImageToTensorNN(torch.nn.Module):
     def forward(self, img: accimage.Image):
         nppic = np.empty([img.channels, img.height, img.width], dtype=np.float32)
@@ -157,7 +172,7 @@ def val_transforms(image_size, extra_size=32):
 
 def val_transforms_simple(image_size, extra_size=32):
     """
-    Simplified version of val_transform - for presized images.
+    Simplified version of val_transform - for resized images.
     Only to tensor and normalize.
     """
     preprocessing = T.Compose(
