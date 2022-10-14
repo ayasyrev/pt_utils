@@ -3,7 +3,7 @@ from typing import Callable, Tuple, Union
 
 from torch.utils.data import Dataset
 
-from .get_image_files import get_img_files
+from .get_img_files import get_img_files
 from .img_loader_pil import loader_pil
 
 
