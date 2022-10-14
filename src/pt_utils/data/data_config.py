@@ -20,6 +20,7 @@ class DataCfg(BaseModel):
     scale_max: float = 1.
     dataset_func = ImageFolderDataset
     image_backend: str = "PIL"  # 'accimage'
+    channels_last: bool = False
     limit_dataset: Union[bool, int] = False
     pin_memory: bool = True
     shuffle: bool = True

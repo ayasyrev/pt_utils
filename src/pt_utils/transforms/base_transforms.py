@@ -10,10 +10,6 @@ def normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
     return T.Normalize(mean=mean, std=std)
 
 
-def resize(size, extra_size=0):
-    return T.Resize(size + extra_size)
-
-
 def train_transforms(image_size, train_img_scale=(0.35, 1)):
     """
     The standard imagenet transforms: random crop, resize to self.image_size, flip.
@@ -24,7 +20,6 @@ def train_transforms(image_size, train_img_scale=(0.35, 1)):
             T.RandomResizedCrop(image_size, scale=train_img_scale),
             T.RandomHorizontalFlip(),
             T.ToTensor(),
-            # normalize(),
             Normalize(),
         ]
     )
@@ -44,10 +39,7 @@ def val_transforms(image_size: int, extra_size: Union[int, None] = None, xtra_pc
     preprocessing = T.Compose(
         [
             ResizeCrop(image_size, extra_size),
-            # T.Resize(image_size + extra_size),
-            # T.CenterCrop(image_size),
             T.ToTensor(),
-            # normalize(),
             Normalize(),
         ]
     )
