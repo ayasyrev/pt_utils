@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 from .image_folder_dataset import ImageFolderDataset
 from .img_loaders import img_libs_available, img_libs_supported
@@ -18,7 +18,7 @@ class DataCfg(BaseModel):
     num_workers: int = 4
     scale_min: float = 0.8
     scale_max: float = 1.
-    dataset_func = ImageFolderDataset
+    dataset_func: Callable = ImageFolderDataset
     image_backend: str = "PIL"  # 'accimage'
     channels_last: bool = False
     limit_dataset: Union[bool, int] = False
@@ -29,7 +29,7 @@ class DataCfg(BaseModel):
     drop_last_val: bool = False   # need it?
     persistent_workers: bool = False
 
-    @validator("image_backend")
+    @field_validator("image_backend")
     def check_supported(cls, v):
         if v not in img_libs_supported:
             raise ValueError(f"{v} is not supported")
